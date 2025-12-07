@@ -22,6 +22,18 @@ pip install -r requirements.txt
 
 ### 2. Paruošti duomenis
 
+**Variantas A: Naudoti apklausos duomenis**
+
+Jei turite originalų apklausos CSV failą:
+
+```bash
+python normalize_data.py "data/Studentų akademinės sėkmės apklausa (Atsakymai).csv"
+```
+
+Tai automatiškai sukurs `data/students_data.csv` su tinkamu formatu.
+
+**Variantas B: Rankiniu būdu**
+
 Įdėkite savo CSV failą į `data/students_data.csv` su šiais stulpeliais:
 - lankomumas_proc
 - savarankisko_mokymosi_val
@@ -29,6 +41,7 @@ pip install -r requirements.txt
 - darbo_valandos
 - miego_valandos
 - socialiniu_tinklu_val
+- studiju_vidurkis
 - dvyliktos_klases_vidurkis
 - brandos_egzaminas_1
 - brandos_egzaminas_2
