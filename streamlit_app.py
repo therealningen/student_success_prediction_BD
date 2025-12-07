@@ -116,16 +116,25 @@ if st.session_state.step >= 12:
     if finansinis != 2:
         st.session_state.step = max(st.session_state.step, 13)
 
+# Paslėptas laukas su checkbox
 ketinu_mesti = None
-if st.session_state.step >= 13:
+has_real_answer = False
+show_hidden_field = st.sidebar.checkbox("🔓 Rodyti paslėptą klausimą (tik testavimui)", value=False)
+
+if show_hidden_field and st.session_state.step >= 13:
     ketinu_mesti = st.sidebar.slider("1️⃣3️⃣ Ar ketini mesti studijas? (1-5)", 1, 5, 1, 1, key="ketinu_mesti",
                                       help="1 = Tikrai ne, 5 = Tikrai taip")
+    has_real_answer = True  # Studentas tikrai atsakė
+else:
+    # Jei paslėptas, naudojame default reikšmę (nežinoma)
+    ketinu_mesti = 1  # Default reikšmė
+    has_real_answer = False  # Neatsakyta
 
-# Tikrinimas ar visi laukai užpildyti
-all_filled = st.session_state.step >= 13 and ketinu_mesti is not None
+# Tikrinimas ar visi laukai užpildyti (be paslėpto lauko)
+all_filled = st.session_state.step >= 13
 
 if not all_filled:
-    st.sidebar.info(f"Užpildyta: {st.session_state.step-1}/13")
+    st.sidebar.info(f"Užpildyta: {st.session_state.step-1}/12")
 
 # Reset mygtukas
 if st.sidebar.button("🔄 Išvalyti duomenis"):
@@ -170,7 +179,8 @@ if proceed:
         'brandos_egzaminas_2': egzaminas2,
         'brandos_egzaminas_3': egzaminas3,
         'finansinis_stresas': finansinis,
-        'ketinu_mesti_studijas': ketinu_mesti
+        'ketinu_mesti_studijas': ketinu_mesti,
+        'has_real_answer': 1 if has_real_answer else 0
     }
     
     # Išsaugome duomenis
@@ -196,9 +206,10 @@ if proceed:
             st.subheader("🤖 Modelio prognozė")
             if result['prediction'] == 1:
                 st.error(f"### ⚠️ {result['risk_level']}")
+                st.metric("Tikimybė mesti studijas", f"{result['probability_risk']*100:.1f}%")
             else:
                 st.success(f"### ✅ {result['risk_level']}")
-            st.metric("Pasitikėjimo lygis", f"{result['confidence']:.1f}%")
+                st.metric("Tikimybė tęsti studijas", f"{result['probability_no_risk']*100:.1f}%")
             
             # Akademinė sėkmė
             st.subheader("📚 Akademinės sėkmės prognozė")
@@ -237,42 +248,41 @@ if proceed:
             )
             st.plotly_chart(fig, use_container_width=True)
         
-        # Feature importance ir Confusion Matrix
-        st.header("📈 Modelio analizė")
-        
-        col_left, col_right = st.columns(2)
-        
-        with col_left:
-            st.subheader("Požymių svarba")
-            try:
-                importance_df = pd.read_csv('models/feature_importance.csv')
-                
-                fig2 = go.Figure(go.Bar(
-                    x=importance_df['importance'],
-                    y=importance_df['feature'],
-                    orientation='h',
-                    marker=dict(color='steelblue')
-                ))
-                fig2.update_layout(
-                    xaxis_title="Svarba",
-                    yaxis_title="Požymis",
-                    height=400
-                )
-                st.plotly_chart(fig2, use_container_width=True)
-            except:
-                st.info("Feature importance grafikas nepasiekiamas. Paleiskite train_model.py")
-        
-        with col_right:
-            st.subheader("Confusion Matrix")
-            try:
-                st.image('models/confusion_matrix_random_forest.png', use_container_width=True)
-            except:
-                st.info("Confusion matrix nepasiekiamas. Paleiskite train_model.py")
-        
     except FileNotFoundError:
         st.error("❌ Modelis nerastas! Pirmiausia paleiskite: python train_model.py")
     except Exception as e:
         st.error(f"❌ Klaida: {e}")
+
+# Modelio analizė
+with st.expander("📈 Modelio analizė"):
+    col_left, col_right = st.columns(2)
+    
+    with col_left:
+        st.subheader("Požymių svarba")
+        try:
+            importance_df = pd.read_csv('models/feature_importance.csv')
+            
+            fig2 = go.Figure(go.Bar(
+                x=importance_df['importance'],
+                y=importance_df['feature'],
+                orientation='h',
+                marker=dict(color='steelblue')
+            ))
+            fig2.update_layout(
+                xaxis_title="Svarba",
+                yaxis_title="Požymis",
+                height=400
+            )
+            st.plotly_chart(fig2, use_container_width=True)
+        except:
+            st.info("Feature importance grafikas nepasiekiamas. Paleiskite train_model.py")
+    
+    with col_right:
+        st.subheader("Confusion Matrix")
+        try:
+            st.image('models/confusion_matrix_random_forest.png', use_container_width=True)
+        except:
+            st.info("Confusion matrix nepasiekiamas. Paleiskite train_model.py")
 
 # Duomenų peržiūros skyrius
 with st.expander("📈 Duomenų bazės peržiūra"):

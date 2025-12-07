@@ -41,11 +41,11 @@ def predict_student_risk(student_data, model_name='random_forest'):
     # Normalizuojame
     X_scaled = scaler.transform(X)
     
-    # Prognozuojame su žemesniu slenksčiu
+    # Prognozuojame
     probability = model.predict_proba(X_scaled)[0]
     
-    # Naudojame žemesnį slenkstį rizikos grupei (0.25 vietoj 0.5)
-    RISK_THRESHOLD = 0.25
+    # Standartinis slenkstis rizikos grupei (50%)
+    RISK_THRESHOLD = 0.5
     prediction = 1 if probability[1] >= RISK_THRESHOLD else 0
     
     # Interpretuojame rezultatą

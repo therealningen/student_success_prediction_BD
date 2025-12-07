@@ -27,10 +27,17 @@ def init_database():
         brandos_egzaminas_3 INTEGER,
         finansinis_stresas INTEGER,
         ketinu_mesti_studijas INTEGER,
+        has_real_answer INTEGER DEFAULT 0,
         is_trained INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
+    
+    # Pridedame stulpelį jei jo nėra (esamai DB)
+    cursor.execute("PRAGMA table_info(students)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if 'has_real_answer' not in columns:
+        cursor.execute('ALTER TABLE students ADD COLUMN has_real_answer INTEGER DEFAULT 0')
     
     # Prognozių lentelė
     cursor.execute('''
@@ -54,14 +61,17 @@ def save_student(student_data):
     conn = sqlite3.connect('students.db')
     cursor = conn.cursor()
     
+    # Tikriname ar turi tikrą atsakymą (ne default reikšmę)
+    has_real_answer = student_data.get('has_real_answer', 0)
+    
     cursor.execute('''
     INSERT INTO students (
         lankomumas_proc, savarankisko_mokymosi_val, streso_lygis,
         darbo_valandos, miego_valandos, socialiniu_tinklu_val,
         studiju_vidurkis, dvyliktos_klases_vidurkis,
         brandos_egzaminas_1, brandos_egzaminas_2, brandos_egzaminas_3,
-        finansinis_stresas, ketinu_mesti_studijas
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        finansinis_stresas, ketinu_mesti_studijas, has_real_answer
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         student_data['lankomumas_proc'],
         student_data['savarankisko_mokymosi_val'],
@@ -75,7 +85,8 @@ def save_student(student_data):
         student_data['brandos_egzaminas_2'],
         student_data['brandos_egzaminas_3'],
         student_data['finansinis_stresas'],
-        student_data['ketinu_mesti_studijas']
+        student_data['ketinu_mesti_studijas'],
+        has_real_answer
     ))
     
     student_id = cursor.lastrowid
@@ -116,9 +127,9 @@ def get_all_students():
     return df
 
 def get_untrained_students():
-    """Gauna tik nepertreniruotus studentus"""
+    """Gauna tik nepertreniruotus studentus, kurie turi tikrą atsakymą"""
     conn = sqlite3.connect('students.db')
-    df = pd.read_sql_query('SELECT * FROM students WHERE is_trained = 0 ORDER BY created_at DESC', conn)
+    df = pd.read_sql_query('SELECT * FROM students WHERE is_trained = 0 AND has_real_answer = 1 ORDER BY created_at DESC', conn)
     conn.close()
     
     if 'ketinu_mesti_studijas' in df.columns:
