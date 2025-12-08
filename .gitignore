@@ -26,14 +26,14 @@ wheels/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Models
-models/*.pkl
-models/*.png
-models/*.csv
+# Models - dabar įtraukti į Git
+# models/*.pkl
+# models/*.png
+# models/*.csv
 
-# Data
-data/*.csv
-!data/example_data.csv
+# Data - dabar įtraukti į Git
+# data/*.csv
+# !data/example_data.csv
 
 # IDE
 .vscode/
