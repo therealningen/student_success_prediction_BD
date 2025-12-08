@@ -116,19 +116,19 @@ if st.session_state.step >= 12:
     if finansinis != 2:
         st.session_state.step = max(st.session_state.step, 13)
 
-# Paslėptas laukas su checkbox
+# Paslėptas laukas su checkbox (UŽKOMENTUOTA)
 ketinu_mesti = None
 has_real_answer = False
-show_hidden_field = st.sidebar.checkbox("🔓 Rodyti paslėptą klausimą (tik testavimui)", value=False)
+# show_hidden_field = st.sidebar.checkbox("🔓 Rodyti paslėptą klausimą (tik testavimui)", value=False)
 
-if show_hidden_field and st.session_state.step >= 13:
-    ketinu_mesti = st.sidebar.slider("1️⃣3️⃣ Ar ketini mesti studijas? (1-5)", 1, 5, 1, 1, key="ketinu_mesti",
-                                      help="1 = Tikrai ne, 5 = Tikrai taip")
-    has_real_answer = True  # Studentas tikrai atsakė
-else:
-    # Jei paslėptas, naudojame default reikšmę (nežinoma)
-    ketinu_mesti = 1  # Default reikšmė
-    has_real_answer = False  # Neatsakyta
+# if show_hidden_field and st.session_state.step >= 13:
+#     ketinu_mesti = st.sidebar.slider("1️⃣3️⃣ Ar ketini mesti studijas? (1-5)", 1, 5, 1, 1, key="ketinu_mesti",
+#                                       help="1 = Tikrai ne, 5 = Tikrai taip")
+#     has_real_answer = True  # Studentas tikrai atsakė
+# else:
+#     # Jei paslėptas, naudojame default reikšmę (nežinoma)
+ketinu_mesti = 1  # Default reikšmė
+has_real_answer = False  # Neatsakyta
 
 # Tikrinimas ar visi laukai užpildyti (be paslėpto lauko)
 all_filled = st.session_state.step >= 13
@@ -293,66 +293,66 @@ with st.expander("📈 Duomenų bazės peržiūra"):
         else:
             st.info("Nėra įrašų duomenų bazėje")
 
-# Modelio pertreniravimas
-with st.expander("🔄 Modelio pertreniravimas"):
-    st.markdown("""
-    **Pertreniruokite modelį su naujais duomenimis iš duomenų bazės.**
-    
-    ⚠️ Rekomenduojama pertreniruoti kai:
-    - Turite bent 50+ naujų studentų duomenų
-    - Praėjo semestras ir turite tikrų rezultatų
-    """)
-    
-    df = get_all_students()
-    df_untrained_local = get_untrained_students()
-    st.info(f"Duomenų bazėje: {len(df)} įrašai (iš jų {len(df_untrained_local)} nepertreniruoti)")
-    
-    if len(df_untrained_local) > 0:
-        st.warning(f"⚠️ Turite {len(df_untrained_local)} naujų įrašų, kurie dar nenaudoti treniravimui!")
-    
-    if st.button("🚀 Pertreniruoti modelį", type="primary"):
-        if len(df_untrained_local) == 0:
-            st.info("ℹ️ Nėra naujų duomenų treniravimui.")
-        elif len(df_untrained_local) < 10:
-            st.warning("⚠️ Per mažai naujų duomenų! Rekomenduojama turėti bent 50+ naujų įrašų.")
-        else:
-            with st.spinner("Treniruojamas modelis..."):
-                try:
-                    import os
-                    import sqlite3
-                    
-                    # Skaitome senus duomenis ir pridedame tik nepertreniruotus
-                    if os.path.exists('data/students_data.csv'):
-                        old_df = pd.read_csv('data/students_data.csv')
-                        combined_df = pd.concat([old_df, df_untrained_local], ignore_index=True)
-                        combined_df = combined_df.drop_duplicates()
-                    else:
-                        combined_df = df_untrained_local
-                    
-                    # Išsaugome atnaujintus duomenis
-                    combined_df.to_csv('data/students_data.csv', index=False)
-                    
-                    # Paleidžiame treniravimą
-                    import subprocess
-                    result = subprocess.run(['python', 'train_model.py'], 
-                                          capture_output=True, text=True, cwd=os.getcwd())
-                    
-                    if result.returncode == 0:
-                        # Pažymime studentus kaip pertreniruotus
-                        mark_students_as_trained()
-                        
-                        st.success("✅ Modelis sėkmingai pertreniruotas!")
-                        st.info(f"Iš viso duomenų: {len(combined_df)} studentų")
-                        st.info(f"✅ Pažymėta {len(df_untrained_local)} įrašų kaip pertreniruotų.")
-                        st.code(result.stdout[-500:])
-                        import time
-                        time.sleep(2)
-                        st.rerun()
-                    else:
-                        st.error(f"❌ Klaida: {result.stderr}")
-                        
-                except Exception as e:
-                    st.error(f"❌ Klaida: {e}")
+# Modelio pertreniravimas (UŽKOMENTUOTA)
+# with st.expander("🔄 Modelio pertreniravimas"):
+#     st.markdown("""
+#     **Pertreniruokite modelį su naujais duomenimis iš duomenų bazės.**
+#     
+#     ⚠️ Rekomenduojama pertreniruoti kai:
+#     - Turite bent 50+ naujų studentų duomenų
+#     - Praėjo semestras ir turite tikrų rezultatų
+#     """)
+#     
+#     df = get_all_students()
+#     df_untrained_local = get_untrained_students()
+#     st.info(f"Duomenų bazėje: {len(df)} įrašai (iš jų {len(df_untrained_local)} nepertreniruoti)")
+#     
+#     if len(df_untrained_local) > 0:
+#         st.warning(f"⚠️ Turite {len(df_untrained_local)} naujų įrašų, kurie dar nenaudoti treniravimui!")
+#     
+#     if st.button("🚀 Pertreniruoti modelį", type="primary"):
+#         if len(df_untrained_local) == 0:
+#             st.info("ℹ️ Nėra naujų duomenų treniravimui.")
+#         elif len(df_untrained_local) < 10:
+#             st.warning("⚠️ Per mažai naujų duomenų! Rekomenduojama turėti bent 50+ naujų įrašų.")
+#         else:
+#             with st.spinner("Treniruojamas modelis..."):
+#                 try:
+#                     import os
+#                     import sqlite3
+#                     
+#                     # Skaitome senus duomenis ir pridedame tik nepertreniruotus
+#                     if os.path.exists('data/students_data.csv'):
+#                         old_df = pd.read_csv('data/students_data.csv')
+#                         combined_df = pd.concat([old_df, df_untrained_local], ignore_index=True)
+#                         combined_df = combined_df.drop_duplicates()
+#                     else:
+#                         combined_df = df_untrained_local
+#                     
+#                     # Išsaugome atnaujintus duomenis
+#                     combined_df.to_csv('data/students_data.csv', index=False)
+#                     
+#                     # Paleidžiame treniravimą
+#                     import subprocess
+#                     result = subprocess.run(['python', 'train_model.py'], 
+#                                           capture_output=True, text=True, cwd=os.getcwd())
+#                     
+#                     if result.returncode == 0:
+#                         # Pažymime studentus kaip pertreniruotus
+#                         mark_students_as_trained()
+#                         
+#                         st.success("✅ Modelis sėkmingai pertreniruotas!")
+#                         st.info(f"Iš viso duomenų: {len(combined_df)} studentų")
+#                         st.info(f"✅ Pažymėta {len(df_untrained_local)} įrašų kaip pertreniruotų.")
+#                         st.code(result.stdout[-500:])
+#                         import time
+#                         time.sleep(2)
+#                         st.rerun()
+#                     else:
+#                         st.error(f"❌ Klaida: {result.stderr}")
+#                         
+#                 except Exception as e:
+#                     st.error(f"❌ Klaida: {e}")
 
 # Informacija apie modelį
 with st.expander("ℹ️ Apie modelį"):
