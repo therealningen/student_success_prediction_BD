@@ -46,73 +46,73 @@ if 'confirm_predict' not in st.session_state:
     st.session_state.confirm_predict = False
 
 # Sekvenciniai įvesties laukai
-lankomumas = st.sidebar.slider("1️⃣ Lankomumas (%)", 0, 100, 85, 5, key="lankomumas")
+lankomumas = st.sidebar.slider("1. Lankomumas (%)", 0, 100, 85, 5, key="lankomumas")
 if lankomumas != 85:
     st.session_state.step = max(st.session_state.step, 2)
 
 savarankiskas = None
 if st.session_state.step >= 2:
-    savarankiskas = st.sidebar.number_input("2️⃣ Savarankiško mokymosi valandos per savaitę", 0, 50, 10, 1, key="savarankiskas")
+    savarankiskas = st.sidebar.number_input("2. Savarankiško mokymosi valandos per savaitę", 0, 50, 10, 1, key="savarankiskas")
     if savarankiskas != 10:
         st.session_state.step = max(st.session_state.step, 3)
 
 stresas = None
 if st.session_state.step >= 3:
-    stresas = st.sidebar.slider("3️⃣ Streso lygis (1-5)", 1, 5, 3, 1, key="stresas")
+    stresas = st.sidebar.slider("3. Streso lygis (1-5)", 1, 5, 3, 1, key="stresas")
     if stresas != 3:
         st.session_state.step = max(st.session_state.step, 4)
 
 darbas = None
 if st.session_state.step >= 4:
-    darbas = st.sidebar.number_input("4️⃣ Darbo valandos per savaitę", 0, 60, 20, 1, key="darbas")
+    darbas = st.sidebar.number_input("4. Darbo valandos per savaitę", 0, 60, 20, 1, key="darbas")
     if darbas != 20:
         st.session_state.step = max(st.session_state.step, 5)
 
 miegas = None
 if st.session_state.step >= 5:
-    miegas = st.sidebar.slider("5️⃣ Miego valandos per parą", 0, 12, 7, 1, key="miegas")
+    miegas = st.sidebar.slider("5. Miego valandos per parą", 0, 12, 7, 1, key="miegas")
     if miegas != 7:
         st.session_state.step = max(st.session_state.step, 6)
 
 socialiniai = None
 if st.session_state.step >= 6:
-    socialiniai = st.sidebar.number_input("6️⃣ Socialinių tinklų valandos per dieną", 0, 12, 2, 1, key="socialiniai")
+    socialiniai = st.sidebar.number_input("6. Socialinių tinklų valandos per dieną", 0, 12, 2, 1, key="socialiniai")
     if socialiniai != 2:
         st.session_state.step = max(st.session_state.step, 7)
 
 studiju_vidurkis = None
 if st.session_state.step >= 7:
-    studiju_vidurkis = st.sidebar.number_input("7️⃣ Studijų vidurkis (1-10)", 0.0, 10.0, 7.5, 0.1, key="studiju_vidurkis")
+    studiju_vidurkis = st.sidebar.number_input("7. Studijų vidurkis (1-10)", 0.0, 10.0, 7.5, 0.1, key="studiju_vidurkis")
     if studiju_vidurkis != 7.5:
         st.session_state.step = max(st.session_state.step, 8)
 
 vidurkis = None
 if st.session_state.step >= 8:
-    vidurkis = st.sidebar.number_input("8️⃣ 12 klasės metinis vidurkis", 1.0, 10.0, 8.5, 0.1, key="vidurkis")
+    vidurkis = st.sidebar.number_input("8. 12 klasės metinis vidurkis", 1.0, 10.0, 8.5, 0.1, key="vidurkis")
     if vidurkis != 8.5:
         st.session_state.step = max(st.session_state.step, 9)
 
 egzaminas1 = None
 if st.session_state.step >= 9:
-    egzaminas1 = st.sidebar.number_input("9️⃣ Brandos egzaminas (Matematika)", 0, 100, 75, 1, key="egzaminas1")
+    egzaminas1 = st.sidebar.number_input("9. Brandos egzaminas (Matematika)", 0, 100, 75, 1, key="egzaminas1")
     if egzaminas1 != 75:
         st.session_state.step = max(st.session_state.step, 10)
 
 egzaminas2 = None
 if st.session_state.step >= 10:
-    egzaminas2 = st.sidebar.number_input("🔟 Brandos egzaminas (Lietuvių kalba)", 0, 100, 80, 1, key="egzaminas2")
+    egzaminas2 = st.sidebar.number_input("10. Brandos egzaminas (Lietuvių kalba)", 0, 100, 80, 1, key="egzaminas2")
     if egzaminas2 != 80:
         st.session_state.step = max(st.session_state.step, 11)
 
 egzaminas3 = None
 if st.session_state.step >= 11:
-    egzaminas3 = st.sidebar.number_input("1️⃣1️⃣ Brandos egzaminas (Anglų kalba)", 0, 100, 70, 1, key="egzaminas3")
+    egzaminas3 = st.sidebar.number_input("11. Brandos egzaminas (Anglų kalba)", 0, 100, 70, 1, key="egzaminas3")
     if egzaminas3 != 70:
         st.session_state.step = max(st.session_state.step, 12)
 
 finansinis = None
 if st.session_state.step >= 12:
-    finansinis = st.sidebar.slider("1️⃣2️⃣ Finansinis stresas (1-5)", 1, 5, 2, 1, key="finansinis")
+    finansinis = st.sidebar.slider("12. Finansinis stresas (1-5)", 1, 5, 2, 1, key="finansinis")
     if finansinis != 2:
         st.session_state.step = max(st.session_state.step, 13)
 
