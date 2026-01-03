@@ -87,18 +87,28 @@ def load_model(model_name='random_forest'):
     scaler = joblib.load(f'models/{model_name}_scaler.pkl')
     return model, scaler
 
-def interpret_prediction(prediction, probability):
+def interpret_prediction(prediction, probability, risk_probability=None):
     """
-    Interpretuoja prognozės rezultatą
+    Interpretuoja prognozės rezultatą su 3 lygiais
     """
-    if prediction == 1:
+    # Jei perduota tikimybė rizikos grupei
+    if risk_probability is not None:
+        prob = risk_probability
+    else:
+        prob = probability
+    
+    # 3 rizikos lygiai pagal tikimybę
+    if prob >= 0.60:
         risk_level = "AUKŠTA RIZIKA"
-        message = "Studentas priklauso rizikos grupei. Rekomenduojama skirti papildomą dėmesį."
+        message = "Studentas priklauso aukštos rizikos grupei. Rekomenduojama skirti papildomą dėmesį."
+    elif prob >= 0.30:
+        risk_level = "VIDUTINĖ RIZIKA"
+        message = "Studentas priklauso vidutinės rizikos grupei. Rekomenduojama stebėti situaciją."
     else:
         risk_level = "ŽEMA RIZIKA"
         message = "Studentas nepriklauso rizikos grupei. Studijų tęsimo tikimybė aukšta."
     
-    confidence = probability * 100
+    confidence = prob * 100
     
     return {
         'risk_level': risk_level,

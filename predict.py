@@ -44,12 +44,12 @@ def predict_student_risk(student_data, model_name='random_forest'):
     # Prognozuojame
     probability = model.predict_proba(X_scaled)[0]
     
-    # Standartinis slenkstis rizikos grupei (50%)
-    RISK_THRESHOLD = 0.5
+    # Sumažintas slenkstis rizikos grupei (30%) - modelis jautresnis rizikai
+    RISK_THRESHOLD = 0.30
     prediction = 1 if probability[1] >= RISK_THRESHOLD else 0
     
-    # Interpretuojame rezultatą
-    result = interpret_prediction(prediction, probability[prediction])
+    # Interpretuojame rezultatą (perduodame rizikos tikimybę)
+    result = interpret_prediction(prediction, probability[prediction], risk_probability=probability[1])
     
     # Pridedame tikimybes
     result['probability_no_risk'] = probability[0]

@@ -26,10 +26,10 @@ wheels/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Models - dabar įtraukti į Git
-# models/*.pkl
-# models/*.png
-# models/*.csv
+# Models - vartotojas sugeneruos pats su apmokyti_modeli.bat
+models/*.pkl
+models/*.png
+models/*.csv
 
 # Data - dabar įtraukti į Git
 # data/*.csv

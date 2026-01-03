@@ -7,64 +7,60 @@ import numpy as np
 
 def generate_realistic_from_real_15(real_risk_df, n=40):
     """
-    Generuoja sintetinius studentus bazuojantis ant tikrų 15 rizikos studentų
-    Išlaiko požymių svarbą ir natūralius ryšius
+    Generuoja ĮVAIRIUS rizikos studentų tipus:
+    1. Žemo lankomumo tipas (30%)
+    2. Aukšto streso tipas su ok lankomumu (35%)
+    3. Pervargusio darbuotojo tipas su geru lankomumu (35%)
     """
     synthetic = []
     
-    print(f"Generuojama {n} sintetinių studentų iš {len(real_risk_df)} tikrų rizikos studentų...")
+    print(f"Generuojama {n} sintetinių studentų (3 skirtingi tipai)...")
     
     for i in range(n):
-        # Pasirinkti atsitiktinį tikrą studentą kaip bazę
-        base = real_risk_df.sample(1, random_state=42+i).iloc[0].copy()
+        np.random.seed(42 + i)
         
         new_student = {}
         
-        # SVARBŪS požymiai - mažas noise (išlaikyti tikslumą)
-        new_student['brandos_egzaminas_1'] = np.clip(
-            base['brandos_egzaminas_1'] + np.random.normal(0, 5), 0, 100
-        )
-        new_student['brandos_egzaminas_2'] = np.clip(
-            base['brandos_egzaminas_2'] + np.random.normal(0, 5), 0, 100
-        )
-        new_student['brandos_egzaminas_3'] = np.clip(
-            base['brandos_egzaminas_3'] + np.random.normal(0, 5), 0, 100
-        )
-        new_student['savarankisko_mokymosi_val'] = np.clip(
-            base['savarankisko_mokymosi_val'] + np.random.normal(0, 2), 0, 60
-        )
-        new_student['socialiniu_tinklu_val'] = np.clip(
-            base['socialiniu_tinklu_val'] + np.random.normal(0, 1), 0, 24
-        )
-        new_student['lankomumas_proc'] = np.clip(
-            base['lankomumas_proc'] + np.random.normal(0, 5), 0, 100
-        )
-        new_student['dvyliktos_klases_vidurkis'] = np.clip(
-            base['dvyliktos_klases_vidurkis'] + np.random.normal(0, 0.3), 0, 10
-        )
+        # Pasirinkti tipą
+        student_type = i % 3  # 0, 1, arba 2
         
-        # MAŽIAU SVARBŪS - didesnis noise
-        new_student['darbo_valandos'] = np.clip(
-            base['darbo_valandos'] + np.random.normal(0, 5), 0, 60
-        )
-        new_student['miego_valandos'] = np.clip(
-            base['miego_valandos'] + np.random.normal(0, 1), 3, 12
-        )
-        new_student['streso_lygis'] = np.clip(
-            int(base['streso_lygis'] + np.random.choice([-1, 0, 1])), 1, 5
-        )
-        new_student['finansinis_stresas'] = np.clip(
-            int(base['finansinis_stresas'] + np.random.choice([-1, 0, 1])), 1, 5
-        )
+        if student_type == 0:
+            # TIPAS 1: Žemo lankomumo studentas (30%)
+            new_student['lankomumas_proc'] = np.random.uniform(20, 55)
+            new_student['savarankisko_mokymosi_val'] = np.random.uniform(0, 8)
+            new_student['streso_lygis'] = np.random.choice([3, 4, 5], p=[0.3, 0.4, 0.3])
+            new_student['darbo_valandos'] = np.random.uniform(15, 40)
+            new_student['miego_valandos'] = np.random.uniform(5, 8)
+            new_student['socialiniu_tinklu_val'] = np.random.uniform(4, 10)
+            
+        elif student_type == 1:
+            # TIPAS 2: Aukšto streso su OK lankomumu (35%)
+            new_student['lankomumas_proc'] = np.random.uniform(60, 85)
+            new_student['savarankisko_mokymosi_val'] = np.random.uniform(2, 10)
+            new_student['streso_lygis'] = np.random.choice([4, 5], p=[0.3, 0.7])
+            new_student['darbo_valandos'] = np.random.uniform(10, 30)
+            new_student['miego_valandos'] = np.random.uniform(4, 6)
+            new_student['socialiniu_tinklu_val'] = np.random.uniform(3, 8)
+            
+        else:
+            # TIPAS 3: Pervargęs darbuotojas su geru lankomumu (35%)
+            new_student['lankomumas_proc'] = np.random.uniform(75, 95)
+            new_student['savarankisko_mokymosi_val'] = np.random.uniform(0, 5)
+            new_student['streso_lygis'] = np.random.choice([3, 4, 5], p=[0.2, 0.4, 0.4])
+            new_student['darbo_valandos'] = np.random.uniform(35, 55)
+            new_student['miego_valandos'] = np.random.uniform(4, 6)
+            new_student['socialiniu_tinklu_val'] = np.random.uniform(1, 5)
         
-        # Studijų vidurkis (jei yra)
-        if 'studiju_vidurkis' in base.index:
-            new_student['studiju_vidurkis'] = np.clip(
-                base['studiju_vidurkis'] + np.random.normal(0, 0.5), 0, 10
-            )
+        # Bendri rodikliai visiems tipams
+        new_student['dvyliktos_klases_vidurkis'] = np.random.uniform(5, 7.5)
+        new_student['brandos_egzaminas_1'] = np.random.uniform(20, 55)
+        new_student['brandos_egzaminas_2'] = np.random.uniform(25, 60)
+        new_student['brandos_egzaminas_3'] = np.random.uniform(20, 65)
+        new_student['finansinis_stresas'] = np.random.choice([3, 4, 5], p=[0.2, 0.4, 0.4])
+        new_student['studiju_vidurkis'] = np.random.uniform(4.5, 7)
         
-        # Rizika lieka 1 (ketina mesti - 4 arba 5)
-        new_student['ketinu_mesti_studijas'] = np.random.choice([4, 5], p=[0.7, 0.3])
+        # Ketina mesti (4 arba 5)
+        new_student['ketinu_mesti_studijas'] = np.random.choice([4, 5], p=[0.5, 0.5])
         new_student['rizika'] = 1
         
         synthetic.append(new_student)

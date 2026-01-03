@@ -204,8 +204,12 @@ if proceed:
             
             # Modelio prognozė
             st.subheader("🤖 Modelio prognozė")
-            if result['prediction'] == 1:
+            # Rodome pagal rizikos lygį
+            if result['risk_level'] == "AUKŠTA RIZIKA":
                 st.error(f"### ⚠️ {result['risk_level']}")
+                st.metric("Tikimybė mesti studijas", f"{result['probability_risk']*100:.1f}%")
+            elif result['risk_level'] == "VIDUTINĖ RIZIKA":
+                st.warning(f"### ⚡ {result['risk_level']}")
                 st.metric("Tikimybė mesti studijas", f"{result['probability_risk']*100:.1f}%")
             else:
                 st.success(f"### ✅ {result['risk_level']}")
