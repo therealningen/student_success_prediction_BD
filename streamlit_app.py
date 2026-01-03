@@ -30,10 +30,10 @@ if stats['total'] > 0 or total_in_db > 0:
         st.metric("Iš viso prognozių", stats['total'])
     with col2:
         st.metric("Rizikos grupė", stats['risk'])
-    with col3:
-        st.metric("Vid. pasitikėjimas", f"{stats['avg_confidence']:.1f}%")
-    with col4:
-        st.metric("⚠️ Nepertreniruota", untrained_count, help="Naujų duomenų, kurie dar nenaudoti modelio treniravimui")
+    # with col3:
+    #     st.metric("Vid. pasitikėjimas", f"{stats['avg_confidence']:.1f}%")
+    # with col4:
+    #     st.metric("⚠️ Nepertreniruota", untrained_count, help="Naujų duomenų, kurie dar nenaudoti modelio treniravimui")
 
 # Sidebar su įvesties laukais
 st.sidebar.header("📝 Studento duomenys")
@@ -361,8 +361,6 @@ with st.expander("📈 Duomenų bazės peržiūra"):
 # Informacija apie modelį
 with st.expander("ℹ️ Apie modelį"):
     st.markdown("""
-    **Naudojamas modelis:** Random Forest Classifier
-    
     **Požymiai:**
     - Lankomumas (%)
     - Savarankiško mokymosi valandos
@@ -373,6 +371,4 @@ with st.expander("ℹ️ Apie modelį"):
     - 12 klasės metinis vidurkis
     - Brandos egzaminų balai (3)
     - Finansinis stresas (1-5)
-    
-    **Rizikos grupė:** Studentai, kurie ketina mesti studijas (4-5 balai)
     """)
