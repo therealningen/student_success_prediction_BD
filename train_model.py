@@ -4,6 +4,7 @@ Trenruoja Logistinę regresiją, Sprendimų medį ir Random Forest
 """
 import pandas as pd
 import numpy as np
+import os
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -14,6 +15,13 @@ import seaborn as sns
 from imblearn.over_sampling import SMOTE
 from utils import get_feature_columns, prepare_features, normalize_features, save_model
 import joblib
+
+# Nustatome darbinį katalogą į skripto vietą
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(SCRIPT_DIR)
+
+# Sukuriame models aplanką, jei jo nėra
+os.makedirs('models', exist_ok=True)
 
 def train_all_models(data_file='data/students_data.csv'):
     """
