@@ -1,6 +1,10 @@
 """
 Streamlit UI aplikacija studentų rizikos prognozei
 """
+import contextlib
+import io
+import os
+import tempfile
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -44,6 +48,8 @@ if 'step' not in st.session_state:
     st.session_state.step = 1
 if 'confirm_predict' not in st.session_state:
     st.session_state.confirm_predict = False
+if 'retrain_notice' not in st.session_state:
+    st.session_state.retrain_notice = None
 
 # Sekvenciniai įvesties laukai
 lankomumas = st.sidebar.slider("1. Lankomumas (%)", 0, 100, 85, 5, key="lankomumas")
@@ -58,7 +64,15 @@ if st.session_state.step >= 2:
 
 stresas = None
 if st.session_state.step >= 3:
-    stresas = st.sidebar.slider("3. Streso lygis (1-5)", 1, 5, 3, 1, key="stresas")
+    stresas = st.sidebar.slider(
+        "3. Streso lygis (1-5)",
+        1,
+        5,
+        3,
+        1,
+        key="stresas",
+        help="1 = Mažiausiai jauču streso, 2 = Nedaug, 3 = Vidutinai, 4 = Daug, 5 = Daugiausiai jauču streso",
+    )
     if stresas != 3:
         st.session_state.step = max(st.session_state.step, 4)
 
@@ -112,7 +126,15 @@ if st.session_state.step >= 11:
 
 finansinis = None
 if st.session_state.step >= 12:
-    finansinis = st.sidebar.slider("12. Finansinis stresas (1-5)", 1, 5, 2, 1, key="finansinis")
+    finansinis = st.sidebar.slider(
+        "12. Finansinis stresas (1-5)",
+        1,
+        5,
+        2,
+        1,
+        key="finansinis",
+        help="1 = Nesiūlyme finansiniame strese, 2 = Nedaug, 3 = Vidutinai, 4 = Daug, 5 = Labai didelis finansinis stresas",
+    )
     if finansinis != 2:
         st.session_state.step = max(st.session_state.step, 13)
 
@@ -297,6 +319,140 @@ with st.expander("📈 Duomenų bazės peržiūra"):
         else:
             st.info("Nėra įrašų duomenų bazėje")
 
+with st.expander("➕ Įkelti naujus duomenis ir pertreniruoti modelį"):
+    st.markdown("""
+    Atsisiųskite Excel šabloną, užpildykite eilutes (po vieną studentą), įkelkite atgal ir pertreniruokite modelį.
+
+    Reikalingas stulpelis **ketinu_mesti_studijas** (1–5), nes iš jo sukuriamas tikslas (**rizika**: 1 jei 4–5, kitaip 0).
+    """)
+
+    if st.session_state.retrain_notice:
+        notice = st.session_state.retrain_notice
+        if notice.get("type") == "success":
+            st.success(notice.get("message", "✅ Modelis sėkmingai pertreniruotas!"))
+            total_rows = notice.get("total_rows")
+            if total_rows is not None:
+                st.info(f"Iš viso treniravimo duomenų: {total_rows}")
+            log_tail = notice.get("log_tail")
+            if log_tail:
+                st.code(log_tail)
+        if st.button("🗙 Paslėpti pranešimą", key="hide_retrain_notice"):
+            st.session_state.retrain_notice = None
+            st.rerun()
+
+    openpyxl_available = True
+    try:
+        import openpyxl  # noqa: F401
+    except ModuleNotFoundError:
+        openpyxl_available = False
+
+    template_columns = get_feature_columns() + ["ketinu_mesti_studijas"]
+    template_row = {
+        "lankomumas_proc": 85,
+        "savarankisko_mokymosi_val": 10,
+        "streso_lygis": 3,
+        "darbo_valandos": 20,
+        "miego_valandos": 7,
+        "socialiniu_tinklu_val": 2,
+        "studiju_vidurkis": 7.5,
+        "dvyliktos_klases_vidurkis": 8.5,
+        "brandos_egzaminas_1": 75,
+        "brandos_egzaminas_2": 80,
+        "brandos_egzaminas_3": 70,
+        "finansinis_stresas": 2,
+        "ketinu_mesti_studijas": 1,
+    }
+    template_df = pd.DataFrame([{col: template_row.get(col, None) for col in template_columns}])
+
+    if not openpyxl_available:
+        st.error("Trūksta openpyxl. Paleiskite instaliuoti_programas.bat ir perkraukite programą.")
+    else:
+        template_buffer = io.BytesIO()
+        template_df.to_excel(template_buffer, index=False, sheet_name="duomenys")
+        st.download_button(
+            "⬇️ Atsisiųsti Excel šabloną",
+            data=template_buffer.getvalue(),
+            file_name="studentu_duomenu_sablonas.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+        uploaded_file = st.file_uploader("📤 Įkelkite užpildytą Excel failą", type=["xlsx"])
+        uploaded_df = None
+        if uploaded_file is not None:
+            try:
+                uploaded_df = pd.read_excel(uploaded_file)
+            except Exception as e:
+                st.error(f"❌ Nepavyko nuskaityti failo: {e}")
+
+        if uploaded_df is not None:
+            st.write(f"Įkelta eilučių: {len(uploaded_df)}")
+            st.dataframe(uploaded_df.head(20))
+
+            missing_cols = [c for c in template_columns if c not in uploaded_df.columns]
+            if missing_cols:
+                st.error("❌ Trūksta stulpelių: " + ", ".join(missing_cols))
+            else:
+                cleaned_df = uploaded_df.copy()
+                for col in template_columns:
+                    cleaned_df[col] = pd.to_numeric(
+                        cleaned_df[col]
+                        .astype(str)
+                        .str.replace("%", "")
+                        .str.replace("-", "")
+                        .str.replace("/", "")
+                        .str.replace(",", "."),
+                        errors="coerce",
+                    )
+
+                cleaned_df = cleaned_df.dropna(subset=["ketinu_mesti_studijas"])
+
+                if len(cleaned_df) == 0:
+                    st.error("❌ Nėra nė vienos pilnai užpildytos eilutės (trūksta ketinu_mesti_studijas).")
+                else:
+                    st.info(f"Tinkamų treniravimui eilučių: {len(cleaned_df)}")
+
+                    if st.button("🚀 Pertreniruoti modelį su įkeltais duomenimis", type="primary"):
+                        with st.spinner("Treniruojamas modelis..."):
+                            tmp_file_path = None
+                            try:
+                                os.makedirs("models", exist_ok=True)
+                                os.makedirs("data", exist_ok=True)
+
+                                if os.path.exists("data/students_data.csv"):
+                                    existing_df = pd.read_csv("data/students_data.csv")
+                                    combined_df = pd.concat([existing_df, cleaned_df], ignore_index=True)
+                                else:
+                                    combined_df = cleaned_df.copy()
+
+                                combined_df = combined_df.drop_duplicates()
+
+                                with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="utf-8") as tmp:
+                                    tmp_file_path = tmp.name
+                                    combined_df.to_csv(tmp_file_path, index=False)
+
+                                from train_model import train_all_models
+
+                                logs_buffer = io.StringIO()
+                                with contextlib.redirect_stdout(logs_buffer):
+                                    train_all_models(tmp_file_path)
+
+                                combined_df.to_csv("data/students_data.csv", index=False)
+                                st.session_state.retrain_notice = {
+                                    "type": "success",
+                                    "message": "✅ Modelis sėkmingai pertreniruotas!",
+                                    "total_rows": len(combined_df),
+                                    "log_tail": logs_buffer.getvalue()[-3000:],
+                                }
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"❌ Pertreniruoti nepavyko: {e}")
+                            finally:
+                                try:
+                                    if tmp_file_path and os.path.exists(tmp_file_path):
+                                        os.remove(tmp_file_path)
+                                except Exception:
+                                    pass
+
 # Modelio pertreniravimas (UŽKOMENTUOTA)
 # with st.expander("🔄 Modelio pertreniravimas"):
 #     st.markdown("""
@@ -359,7 +515,7 @@ with st.expander("📈 Duomenų bazės peržiūra"):
 #                     st.error(f"❌ Klaida: {e}")
 
 # Informacija apie modelį
-with st.expander("ℹ️ Apie modelį"):
+with st.expander("Apie modelį"):
     st.markdown("""
     **Požymiai:**
     - Lankomumas (%)
