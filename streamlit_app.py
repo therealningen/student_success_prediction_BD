@@ -347,6 +347,13 @@ with st.expander("➕ Įkelti naujus duomenis ir pertreniruoti modelį"):
         openpyxl_available = False
 
     template_columns = get_feature_columns() + ["ketinu_mesti_studijas"]
+    template_column_labels = {
+        "brandos_egzaminas_1": "brandos_egzaminas_matematika",
+        "brandos_egzaminas_2": "brandos_egzaminas_lietuviu",
+        "brandos_egzaminas_3": "brandos_egzaminas_anglu",
+    }
+    template_label_to_internal = {v: k for k, v in template_column_labels.items()}
+
     template_row = {
         "lankomumas_proc": 85,
         "savarankisko_mokymosi_val": 10,
@@ -363,6 +370,7 @@ with st.expander("➕ Įkelti naujus duomenis ir pertreniruoti modelį"):
         "ketinu_mesti_studijas": 1,
     }
     template_df = pd.DataFrame([{col: template_row.get(col, None) for col in template_columns}])
+    template_df = template_df.rename(columns=template_column_labels)
 
     if not openpyxl_available:
         st.error("Trūksta openpyxl. Paleiskite instaliuoti_programas.bat ir perkraukite programą.")
@@ -388,11 +396,12 @@ with st.expander("➕ Įkelti naujus duomenis ir pertreniruoti modelį"):
             st.write(f"Įkelta eilučių: {len(uploaded_df)}")
             st.dataframe(uploaded_df.head(20))
 
-            missing_cols = [c for c in template_columns if c not in uploaded_df.columns]
+            normalized_uploaded_df = uploaded_df.rename(columns=template_label_to_internal)
+            missing_cols = [c for c in template_columns if c not in normalized_uploaded_df.columns]
             if missing_cols:
                 st.error("❌ Trūksta stulpelių: " + ", ".join(missing_cols))
             else:
-                cleaned_df = uploaded_df.copy()
+                cleaned_df = normalized_uploaded_df.copy()
                 for col in template_columns:
                     cleaned_df[col] = pd.to_numeric(
                         cleaned_df[col]
@@ -517,6 +526,8 @@ with st.expander("➕ Įkelti naujus duomenis ir pertreniruoti modelį"):
 # Informacija apie modelį
 with st.expander("Apie modelį"):
     st.markdown("""
+    **Pagrindinis modelis:** Random Forest
+
     **Požymiai:**
     - Lankomumas (%)
     - Savarankiško mokymosi valandos
